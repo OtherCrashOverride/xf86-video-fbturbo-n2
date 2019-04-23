@@ -24,8 +24,7 @@
 #ifndef SUNXI_MALI_UMP_DRI2_H
 #define SUNXI_MALI_UMP_DRI2_H
 
-#include <ump/ump.h>
-#include <ump/ump_ref_drv.h>
+#include "ion.h"
 
 #include "uthash.h"
 
@@ -46,7 +45,7 @@ typedef struct
     int                     refcount;
     UT_hash_handle          hh;
 
-    ump_handle              handle;
+    ion_user_handle_t       handle;
     size_t                  size;
     uint8_t                *addr;
     int                     depth;
@@ -54,7 +53,7 @@ typedef struct
     size_t                  height;
     int                     extra_flags;
 
-    ump_secure_id           secure_id;
+    int                     secure_id;
     unsigned int            pitch;
     unsigned int            cpp;
     unsigned int            offs;
@@ -146,19 +145,19 @@ typedef struct {
     DestroyPixmapProcPtr    DestroyPixmap;
 
     /* the primary UMP secure id for accessing framebuffer */
-    ump_secure_id           ump_fb_secure_id;
+    int           ump_fb_secure_id;
     /* the alternative UMP secure id used for the window resize workaround */
-    ump_secure_id           ump_alternative_fb_secure_id;
+    int           ump_alternative_fb_secure_id;
     /* the UMP secure id for a dummy buffer */
-    ump_secure_id           ump_null_secure_id;
-    ump_handle              ump_null_handle1;
-    ump_handle              ump_null_handle2;
+    int           ump_null_secure_id;
+    ion_user_handle_t              ump_null_handle1;
+    ion_user_handle_t              ump_null_handle2;
 
     UMPBufferInfoPtr        HashPixmapToUMP;
     DRI2WindowStatePtr      HashWindowState;
 
     int                     drm_fd;
-
+    
     /* Wait for vsync when swapping DRI2 buffers */
     Bool                    bSwapbuffersWait;
 } SunxiMaliDRI2;

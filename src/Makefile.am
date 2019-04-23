@@ -55,8 +55,8 @@ fbturbo_drv_la_SOURCES = \
          sunxi_disp_ioctl.h \
          g2d_driver.h
 
-if HAVE_LIBUMP
+
 fbturbo_drv_la_SOURCES += \
          sunxi_mali_ump_dri2.c \
          sunxi_mali_ump_dri2.h
-endif
+

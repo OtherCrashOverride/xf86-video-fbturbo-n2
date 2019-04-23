@@ -55,9 +55,9 @@
 #include "backing_store_tuner.h"
 #include "sunxi_video.h"
 
-#ifdef HAVE_LIBUMP
+//#ifdef HAVE_LIBUMP
 #include "sunxi_mali_ump_dri2.h"
-#endif
+//#endif
 
 /* for visuals */
 #include "fb.h"
@@ -1071,7 +1071,7 @@ FBDevScreenInit(SCREEN_INIT_ARGS_DECL)
 		           "failed to enable hardware cursor\n");
 	}
 
-#ifdef HAVE_LIBUMP
+//#ifdef HAVE_LIBUMP
 	if (xf86ReturnOptValBool(fPtr->Options, OPTION_DRI2, TRUE)) {
 
 	    fPtr->SunxiMaliDRI2_private = SunxiMaliDRI2_Init(pScreen,
@@ -1095,12 +1095,12 @@ FBDevScreenInit(SCREEN_INIT_ARGS_DECL)
 	    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
 	               "DRI2 integration for Mali GPU is disabled in xorg.conf\n");
 	}
-#else
-	xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-	           "no 3D acceleration because the driver has been compiled without libUMP\n");
-	xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-	           "if this is wrong and needs to be fixed, please check ./configure log\n");
-#endif
+// #else
+// 	xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+// 	           "no 3D acceleration because the driver has been compiled without libUMP\n");
+// 	xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+// 	           "if this is wrong and needs to be fixed, please check ./configure log\n");
+// #endif
 
 	TRACE_EXIT("FBDevScreenInit");
 
@@ -1113,13 +1113,13 @@ FBDevCloseScreen(CLOSE_SCREEN_ARGS_DECL)
 	ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
 	FBDevPtr fPtr = FBDEVPTR(pScrn);
 
-#ifdef HAVE_LIBUMP
+//#ifdef HAVE_LIBUMP
 	if (fPtr->SunxiMaliDRI2_private) {
 	    SunxiMaliDRI2_Close(pScreen);
 	    free(fPtr->SunxiMaliDRI2_private);
 	    fPtr->SunxiMaliDRI2_private = NULL;
 	}
-#endif
+//#endif
 
 	if (fPtr->SunxiDispHardwareCursor_private) {
 	    SunxiDispHardwareCursor_Close(pScreen);
