@@ -51,9 +51,12 @@
 #include "sunxi_disp_ioctl.h"
 #include "sunxi_mali_ump_dri2.h"
 
+#include "jem.h"
+
 #define ION_INVALID_MEMORY_HANDLE (-1)
 
 int ion_fd = -1;
+int jem_fd = -1;
 
 static ion_user_handle_t ion_allocate(size_t length)
 {
@@ -108,6 +111,50 @@ static void ion_free(ion_user_handle_t handle)
         ErrorF("ion_close: ION_IOC_FREE failed!\n");
     }
 }
+
+
+static int jem_attach(int fd)
+{
+    int io = ioctl(jem_fd, JEM_ATTACH_DMABUF, fd);
+    if (io < 0)
+    {
+        printf("JEM_ATTACH_DMABUF failed!\n");
+        abort();
+    }
+}
+
+static int jem_release(int fd)
+{
+    int io = ioctl(jem_fd, JEM_RELEASE_DMABUF, fd);
+    if (io < 0)
+    {
+        printf("JEM_RELEASE_DMABUF failed!\n");
+        abort();
+    }
+}
+
+static void jem_flush_all()
+{
+    int io = ioctl(jem_fd, JEM_FLUSH_ALL, 0);
+    if (io < 0)
+    {
+        printf("JEM_FLUSH_ALL failed!\n");
+        abort();
+    }
+}
+
+static int jem_create_fd(int fd)
+{
+    int io = ioctl(jem_fd, JEM_CREATE_FD, fd);
+    if (io < 0)
+    {
+        printf("JEM_CREATE_FD failed!\n");
+        abort();
+    }
+
+    return io;
+}
+
 
 
 #ifndef ARRAY_SIZE
@@ -276,6 +323,11 @@ static void unref_ump_buffer_info(UMPBufferInfoPtr umpbuf)
 
             if (umpbuf->secure_id != ION_INVALID_MEMORY_HANDLE)
             {
+                if (jem_release(umpbuf->secure_id) < 0)
+                {
+                    ErrorF("jem_release failed (secure_id=%d)\n", umpbuf->secure_id);
+                }
+
                 close(umpbuf->secure_id);
             }
 
@@ -556,6 +608,12 @@ static DRI2Buffer2Ptr MaliDRI2CreateBuffer(DrawablePtr  pDraw,
         privates->addr = mmap(NULL, privates->size, PROT_READ | PROT_WRITE, MAP_SHARED, privates->secure_id, 0); //ump_mapped_pointer_get(privates->handle);
         buffer->name = privates->secure_id; //ump_secure_id_get(privates->handle);
         buffer->flags = 0;
+
+        if (jem_attach(privates->secure_id) < 0)
+        {
+            ErrorF("jem_attach failed (secure_id=%d)\n",
+                   privates->secure_id);
+        }
 
         /* Replace the old UMP buffer with the newly allocated one */
         if (window_state->ump_mem_buffer_ptr)
@@ -1122,6 +1180,14 @@ SunxiMaliDRI2 *SunxiMaliDRI2_Init(ScreenPtr pScreen,
         ErrorF("SunxiMaliDRI2_Init: open /dev/ion failed!\n");
         return NULL;
     }
+
+    if ((jem_fd = open("/dev/jem", O_RDWR)) < 0)
+    {
+        ErrorF("SunxiMaliDRI2_Init: open /dev/jem failed!\n");
+        return NULL;
+    }
+
+    jem_flush_all();
 
     // struct ion_heap_query ion_query = { 0 }; 
 	// // __u32 cnt; /* Total number of heaps to be copied */
