@@ -66,7 +66,7 @@ static ion_user_handle_t ion_allocate(size_t length)
         data.len = length;
         data.align = 4;
         data.heap_id_mask = ION_HEAP_TYPE_SYSTEM_CONTIG;
-        data.flags = 0 ;//ION_FLAG_CACHED;
+        data.flags = ION_FLAG_CACHED;
         data.handle = 0;
 
         int io = ioctl(ion_fd, ION_IOC_ALLOC, &data);
